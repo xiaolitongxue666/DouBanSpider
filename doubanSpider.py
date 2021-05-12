@@ -224,12 +224,23 @@ def book_spider_with_user_id_and_status(book_status):
             break  # Break when no information got after 200 times requesting
 
         book_info_lists = list_soup.findAll('li', {'class': 'subject-item'})
+        # print "book_info_lists is:", book_info_lists
+        # print "book_info_lists len is:", len(book_info_lists)
 
         for book_info in book_info_lists:
-        # for book_info in list_soup.findAll('li', {'class': 'subject-item'}):
+            # print "book_info is:", book_info
+            # print " ====================================================================================  "
+
             sub_book_info = book_info.find('div', {'class': 'info'})
-            title = sub_book_info.find('a').string.strip()
-            # print "Title is:", title
+            # print "sub_book_info is:", sub_book_info
+            # print " ====================================================================================  "
+
+            # title = sub_book_info.find('a').string.strip()
+            title = sub_book_info.find('a').text.strip().split('\n')[0]
+            print "Title is :", title
+            # print "Title is:", title.text.strip().split('\n')[0]
+            # print " ====================================================================================  "
+
             # 获取出版社作者
             desc = sub_book_info.find('div', {'class': 'pub'}).string.strip()
             # print "Desc is:", desc
@@ -249,9 +260,12 @@ def book_spider_with_user_id_and_status(book_status):
             print "Author is:", author_info
             print "Public is:", pub_info
 
+            print " ====================================================================================  "
+
             # 添加书本信息到book list
             book_list.append([title, author_info, pub_info])
             try_times = 0  # set 0 when got valid information
+
         page_num += 1
         print 'Downloading Information From Page %d' % page_num
     return book_list
@@ -274,15 +288,16 @@ def do_spider_with_user_id(user_id):
     return book_lists
 
 
-def print_book_lists_excel_with_user_id(book_lists):
+def print_book_lists_excel_with_user_id(book_lists, user_id):
     # book_status_lists = ['正在看', '看过', '想看']
     book_status_lists = ['看过']
 
-    wb = Workbook(optimized_write=True)
+    # wb = Workbook(optimized_write=True)
+    wb = Workbook(write_only=True)
     ws = []
     # 更具tag创建各自的子表，就是excel最下面的sheets
     for i in range(len(book_status_lists)):
-        ws.append(wb.create_sheet(title=book_lists[i].decode()))  # utf8->unicode
+        ws.append(wb.create_sheet(title=book_status_lists[i].decode()))  # utf8->unicode
 
     # 遍历每一个status的对应的sheet
     for i in range(len(book_status_lists)):
@@ -294,15 +309,15 @@ def print_book_lists_excel_with_user_id(book_lists):
         # 遍历book_lists这个数组，序号和book_tag_lists对应
         for bl in book_lists[i]:
             #             序号    书名   作者    出版社
-            ws[i].append([count, bl[0], bl[3], bl[4]])
+            ws[i].append([count, bl[0], bl[1], bl[2]])
             count += 1
 
     # 设置保存文件的文件头字符串 参考：book_list-个人管理-时间管理-投资-文化-宗教.xlsx
-    save_path = 'book_list'
+    save_path = 'User_' + user_id + '_book_list'
 
     # 设置保存文件的文件中tag的描述 参考：book_list-个人管理-时间管理-投资-文化-宗教.xlsx
     for i in range(len(book_status_lists)):
-        save_path += ('-' + book_status_lists[i].decode())
+        save_path += ('_' + book_status_lists[i].decode())
 
     # 设置保存文件的文件类型 参考：book_list-个人管理-时间管理-投资-文化-宗教.xlsx
     save_path += '.xlsx'
@@ -333,4 +348,4 @@ if __name__ == '__main__':
     # 按照用户爬取数据
     user_id = '49754936'
     book_lists = do_spider_with_user_id(user_id)
-    print_book_lists_excel_with_user_id(book_lists)
+    print_book_lists_excel_with_user_id(book_lists, user_id)
