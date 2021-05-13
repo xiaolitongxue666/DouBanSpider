@@ -142,3 +142,7 @@ cython_debug/
 
 # xlsx files
 .xlsx
+
+#.DS_Store
+.DS_Store
+
