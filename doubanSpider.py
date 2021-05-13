@@ -4,7 +4,6 @@ import sys
 import time
 import urllib
 import urllib2
-# import requests
 import numpy as np
 from bs4 import BeautifulSoup
 from openpyxl import Workbook
@@ -12,13 +11,15 @@ from openpyxl import Workbook
 reload(sys)
 sys.setdefaultencoding('utf8')
 
-#Some User Agents
-hds=[{'User-Agent':'Mozilla/5.0 (Windows; U; Windows NT 6.1; en-US; rv:1.9.1.6) Gecko/20091201 Firefox/3.5.6'},\
-{'User-Agent':'Mozilla/5.0 (Windows NT 6.2) AppleWebKit/535.11 (KHTML, like Gecko) Chrome/17.0.963.12 Safari/535.11'},\
-{'User-Agent': 'Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.2; Trident/6.0)'}]
+# Some User Agents
+hds = [{'User-Agent': 'Mozilla/5.0 (Windows; U; Windows NT 6.1; en-US; rv:1.9.1.6) Gecko/20091201 Firefox/3.5.6'}, \
+       {
+           'User-Agent': 'Mozilla/5.0 (Windows NT 6.2) AppleWebKit/535.11 (KHTML, like Gecko) Chrome/17.0.963.12 Safari/535.11'}, \
+       {'User-Agent': 'Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.2; Trident/6.0)'}]
 
 
 ########################################################################################################################
+# Spider douban books from reading tags
 def book_spider(book_tag):
     page_num = 0
     book_list = []
@@ -174,8 +175,7 @@ def book_status_to_url(book_status):
     return url.get(book_status, None)
 
 
-# def book_spider_with_user_id_and_status(user_id, book_status):
-def book_spider_with_user_id_and_status(book_status):
+def book_spider_with_user_id_and_status(user_id, book_status_lists):
     page_num = 0
     book_list = []
     try_times = 0
@@ -187,10 +187,12 @@ def book_spider_with_user_id_and_status(book_status):
         # https://book.douban.com/people/49754936/collect?start=0
 
         # url = 'https://book.douban.com/people/49754936/collect?start=0'  # For Test
-        url = 'https://book.douban.com/people/' + user_id + '/' + book_status_to_url(book_status) + '?start=' + str(page_num * 15)
+        url = 'https://book.douban.com/people/' + user_id + '/' + book_status_to_url(book_status_lists) + '?start=' + str(
+            page_num * 15)
 
-        headers = {'User-Agent':'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.93 Safari/537.36',
-                   'Cookie': 'bid=ml0q26zGHcs; ll="108169"; ap_v=0,6.0; __utma=30149280.58262688.1620584802.1620584802.1620584802.1; __utmc=30149280; __utmz=30149280.1620584802.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none); __utmt_douban=1; __utma=81379588.1453940470.1620584802.1620584802.1620584802.1; __utmc=81379588; __utmz=81379588.1620584802.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none); __utmt=1; _pk_ses.100001.3ac3=*; _pk_id.100001.3ac3=15033d4ce8d72d6b.1620584802.1.1620585128.1620584802.; __utmb=30149280.6.10.1620584802; __utmb=81379588.6.10.1620584802'}
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.93 Safari/537.36',
+            'Cookie': 'bid=ml0q26zGHcs; ll="108169"; ap_v=0,6.0; __utma=30149280.58262688.1620584802.1620584802.1620584802.1; __utmc=30149280; __utmz=30149280.1620584802.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none); __utmt_douban=1; __utma=81379588.1453940470.1620584802.1620584802.1620584802.1; __utmc=81379588; __utmz=81379588.1620584802.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none); __utmt=1; _pk_ses.100001.3ac3=*; _pk_id.100001.3ac3=15033d4ce8d72d6b.1620584802.1.1620585128.1620584802.; __utmb=30149280.6.10.1620584802; __utmb=81379588.6.10.1620584802'}
 
         print "URL is:", url
         print "Random is:", np.random.random()
@@ -212,7 +214,7 @@ def book_spider_with_user_id_and_status(book_status):
         # plain_text = source_code.text
 
         # 通过 BeautifulSoup 获取 HTML中的数据
-        soup = BeautifulSoup(plain_text,features="html.parser")
+        soup = BeautifulSoup(plain_text, features="html.parser")
         # 查询
         list_soup = soup.find('ul', {'class': 'interest-list'})
 
@@ -271,16 +273,14 @@ def book_spider_with_user_id_and_status(book_status):
     return book_list
 
 
-def do_spider_with_user_id(user_id):
+def do_spider_with_user_id(user_id, book_status_lists):
     # 创建book_lists空数组
     book_lists = []
-    # book_status_lists = ['正在看', '看过', '想看']
-    book_status_lists = ['看过']
+
     # 遍历book_tag
     for book_status in book_status_lists:
         # 每一个book status执行爬虫
-        # book_list = book_spider_with_user_id_and_status(user_id, book_status)
-        book_list = book_spider_with_user_id_and_status(book_status)
+        book_list = book_spider_with_user_id_and_status(user_id, book_status)
         # 爬虫结果排序
         book_list = sorted(book_list, key=lambda x: x[1], reverse=True)
         # 将排序结果保存在book_lists中， 注意和book_list的区别
@@ -288,11 +288,7 @@ def do_spider_with_user_id(user_id):
     return book_lists
 
 
-def print_book_lists_excel_with_user_id(book_lists, user_id):
-    # book_status_lists = ['正在看', '看过', '想看']
-    book_status_lists = ['看过']
-
-    # wb = Workbook(optimized_write=True)
+def print_book_lists_excel_with_user_id(user_id, book_status_lists, book_lists):
     wb = Workbook(write_only=True)
     ws = []
     # 更具tag创建各自的子表，就是excel最下面的sheets
@@ -330,7 +326,6 @@ def print_book_lists_excel_with_user_id(book_lists, user_id):
 
 if __name__ == '__main__':
     # 按照标签爬取数据
-
     # book_tag_lists = ['心理','判断与决策','算法','数据结构','经济','历史']
     # book_tag_lists = ['传记','哲学','编程','创业','理财','社会学','佛教']
     # book_tag_lists = ['思想','科技','科学','web','股票','爱情','两性']
@@ -347,5 +342,12 @@ if __name__ == '__main__':
 
     # 按照用户爬取数据
     user_id = '49754936'
-    book_lists = do_spider_with_user_id(user_id)
-    print_book_lists_excel_with_user_id(book_lists, user_id)
+    # book_status_lists = ['正在看', '看过', '想看']
+    # book_status_lists = ['正在看', '看过']
+    # book_status_lists = ['正在看']
+    # book_status_lists = ['看过']
+    book_status_lists = ['想看']
+    book_lists = do_spider_with_user_id(user_id, book_status_lists)
+    print_book_lists_excel_with_user_id(user_id, book_status_lists, book_lists)
+
+    print 'Finish spider !!!'
